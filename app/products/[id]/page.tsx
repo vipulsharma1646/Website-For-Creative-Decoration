@@ -262,7 +262,7 @@ export default function ProductPage() {
             {/* Product Details */}
             <div className="border-t border-green-900/20 pt-6 space-y-4">
               <h3 className="text-lg font-semibold text-green-900">Details</h3>
-              <p className="text-green-800 leading-relaxed">{product.details}</p>
+              <p className="text-green-800 leading-relaxed">{product.description}</p>
 
               {/* Features */}
               <div className="grid grid-cols-2 gap-4 mt-6">
