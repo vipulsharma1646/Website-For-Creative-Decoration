@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #FEFBF7;  /* clean off-white background */
+  color: #1A1A1A;             /* dark text */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    #b93636 0%,
+    #e0e0e0 50%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5E6C8;  /* cream background */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1B8B8B;  /* teal */
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #E91E8C;  /* pink on hover */
+}
+
+/* Wave Divider Styles */
+.wave-divider {
+  position: relative;
+  height: 120px;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.wave-divider svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.wave-divider-top {
+  transform: rotate(180deg);
+}
+
+.wave-teal {
+  fill: #1B8B8B;
+}
+
+.wave-amber {
+  fill: #B8860B;
+}
+
+.wave-green {
+  fill: #10B981;
+}
