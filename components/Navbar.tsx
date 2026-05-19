@@ -7,7 +7,8 @@ export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false)
 
   const categories = [
-    'Latex Balloons',
+    'Plain Latex Balloons',
+    'Pistol Balloons',
     'Foil Balloons',
     'Chrome Balloons',
     'Birthday Kits',

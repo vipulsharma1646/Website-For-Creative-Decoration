@@ -1,62 +1,9 @@
-'use client'
+ 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ProductCard from '@/components/ProductCard'
 import WaveDivider from '@/components/WaveDivider'
 import Link from 'next/link'
-
-// Mock data
-const mockProducts = [
-  {
-    id: '1',
-    title: 'Premium Latex Balloons',
-    description:
-      'Vibrant, high-quality latex balloons perfect for any celebration',
-    basePrice: 5,
-    imageUrl:
-      'https://images.unsplash.com/photo-1599269865297-bf57cfd973a0?w=500&h=500&fit=crop',
-  },
-  {
-    id: '2',
-    title: 'Metallic Foil Balloons',
-    description: 'Shimmering foil balloons that add sparkle to your party',
-    basePrice: 8,
-    imageUrl:
-      'https://images.unsplash.com/photo-1623487803237-a6ba7066c6f4?w=500&h=500&fit=crop',
-  },
-  {
-    id: '3',
-    title: 'Chrome Balloon Bundle',
-    description: 'Modern chrome finish balloons for a sleek look',
-    basePrice: 12,
-    imageUrl:
-      'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=500&fit=crop',
-  },
-  {
-    id: '4',
-    title: 'Birthday Party Kit',
-    description: 'Complete party kit with balloons and decorations',
-    basePrice: 25,
-    imageUrl:
-      'https://images.unsplash.com/photo-1557672172-298e090d0f80?w=500&h=500&fit=crop',
-  },
-  {
-    id: '5',
-    title: 'Anniversary Decor Set',
-    description: 'Elegant decorations perfect for anniversaries',
-    basePrice: 30,
-    imageUrl:
-      'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=500&h=500&fit=crop',
-  },
-  {
-    id: '6',
-    title: 'Premium Party Bundle',
-    description: 'Everything you need for an unforgettable celebration',
-    basePrice: 50,
-    imageUrl:
-      'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=500&h=500&fit=crop',
-  },
-]
 
 const banners = [
   {
@@ -90,6 +37,38 @@ const banners = [
 
 export default function Home() {
   const [currentBanner, setCurrentBanner] = useState(0)
+  const [products, setProducts] = useState<any[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
+
+  useEffect(() => {
+    let mounted = true
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products')
+        const json = await res.json()
+        if (mounted && json && json.data) setProducts(json.data)
+      } catch (err) {
+        console.error('Failed to fetch products', err)
+      } finally {
+        if (mounted) setLoadingProducts(false)
+      }
+    }
+    fetchProducts()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const featured = React.useMemo(() => {
+    if (!products || products.length === 0) return []
+    // shuffle and take 6
+    const copy = products.slice()
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[copy[i], copy[j]] = [copy[j], copy[i]]
+    }
+    return copy.slice(0, 6)
+  }, [products])
 
   const nextBanner = () => {
     setCurrentBanner((prev) => (prev + 1) % banners.length)
@@ -202,9 +181,22 @@ export default function Home() {
 
           {/* Product Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {mockProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
+            {loadingProducts ? (
+              <div className="col-span-full text-center">Loading products...</div>
+            ) : featured.length === 0 ? (
+              <div className="col-span-full text-center">No products found</div>
+            ) : (
+              featured.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  title={product.title}
+                  description={product.description}
+                  basePrice={product.basePrice}
+                  imageUrl={product.imageUrl}
+                />
+              ))
+            )}
           </div>
         </div>
       </section>

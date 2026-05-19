@@ -52,8 +52,9 @@ export default function RootLayout({
               <div>
                 <h4 className="font-semibold mb-4">Support</h4>
                 <ul className="space-y-2 text-sm text-gray-400">
-                  <li>Contact: support@partypropz.com</li>
-                  <li>Phone: +91 98765 43210</li>
+                  <li>Contact: info@creativedecoration.in</li>
+                  <li>Phone: +91 81683 35256</li>
+                  <li>Location: DD Colony, Kurukshetra</li>
                 </ul>
               </div>
             </div>

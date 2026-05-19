@@ -11,6 +11,8 @@ interface Product {
   imageUrl: string
   sizes: string[]
   colors: string[]
+  details?: string | null
+  pricing?: Record<string, Record<string, number>> | null
 }
 
 export default function ProductPage() {
@@ -23,6 +25,8 @@ export default function ProductPage() {
   const [selectedSize, setSelectedSize] = useState('5')
   const [selectedColor, setSelectedColor] = useState('Red')
   const [quantity, setQuantity] = useState(1)
+  const [selectedPack, setSelectedPack] = useState('1')
+  const [availablePacks, setAvailablePacks] = useState<string[]>(['1', '50', '100'])
   const [isAdded, setIsAdded] = useState(false)
 
   useEffect(() => {
@@ -40,6 +44,15 @@ export default function ProductPage() {
         }
         if (data.data.colors && data.data.colors.length > 0) {
           setSelectedColor(data.data.colors[0])
+        }
+        // set packs from pricing if available
+        if (data.data.pricing && typeof data.data.pricing === 'object') {
+          // derive pack sizes from pricing for the first size
+          const sizes = Object.keys(data.data.pricing)
+          if (sizes.length > 0) {
+            const packsForFirst = Object.keys(data.data.pricing[sizes[0]] || {})
+            if (packsForFirst.length > 0) setAvailablePacks(packsForFirst)
+          }
         }
         setError(null)
       } catch (err) {
@@ -87,8 +100,23 @@ export default function ProductPage() {
     '10': 2,
   }
 
-  const currentPrice =
-    product.basePrice * (sizeMultiplier[selectedSize] || 1)
+  const packCount = parseInt(selectedPack || '1', 10) || 1
+
+  // Determine price: use pricing override if present, else compute basePrice * sizeMultiplier * packCount
+  const currentPrice = (() => {
+    try {
+      if (
+        product.pricing &&
+        product.pricing[selectedSize] &&
+        product.pricing[selectedSize][selectedPack]
+      ) {
+        return product.pricing[selectedSize][selectedPack]
+      }
+    } catch (e) {
+      // ignore
+    }
+    return product.basePrice * (sizeMultiplier[selectedSize] || 1) * packCount
+  })()
 
   const colorMap: { [key: string]: string } = {
     Red: 'bg-red-500',
@@ -185,6 +213,27 @@ export default function ProductPage() {
               <p className="text-sm text-green-800">
                 Price updates based on selected size
               </p>
+            </div>
+
+            {/* Pack Selector */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-green-900">Pack</h3>
+              <div className="flex gap-3">
+                {availablePacks.map((pack) => (
+                  <button
+                    key={pack}
+                    onClick={() => setSelectedPack(pack)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2 ${
+                      selectedPack === pack
+                        ? 'bg-green-900 text-[#ffe0bd] border-green-900'
+                        : 'bg-transparent text-green-900 border-green-900/30 hover:border-green-900'
+                    }`}
+                  >
+                    {pack} pcs
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm text-green-800">Price updates based on selected pack</p>
             </div>
 
             {/* Color Selector */}

@@ -17,6 +17,9 @@ export default function AdminAddProductPage() {
     categories: '',
     sizes: '',
     colors: '',
+    packs: '1,50,100',
+    pricing: '',
+    details: '',
     imageUrl: '',
   })
 
@@ -67,6 +70,22 @@ export default function AdminAddProductPage() {
         .split(',')
         .map((cat) => cat.trim())
         .filter((cat) => cat)
+      const packs = formData.packs
+        .split(',')
+        .map((p) => p.trim())
+        .filter((p) => p)
+
+      // Parse pricing JSON if provided
+      let pricingObj = null
+      if (formData.pricing) {
+        try {
+          pricingObj = JSON.parse(formData.pricing)
+        } catch (err) {
+          setSubmitMessage('Pricing must be valid JSON')
+          setIsSubmitting(false)
+          return
+        }
+      }
 
       // Validation
       if (
@@ -93,6 +112,9 @@ export default function AdminAddProductPage() {
           categories: categories,
           sizes: sizes,
           colors: colors,
+          packs: packs,
+          details: formData.details,
+          pricing: pricingObj,
           imageUrl: formData.imageUrl,
         }),
       })
@@ -109,9 +131,12 @@ export default function AdminAddProductPage() {
         title: '',
         description: '',
         basePrice: '',
-        categories: '',
-        sizes: '',
-        colors: '',
+            categories: '',
+            sizes: '',
+            colors: '',
+            packs: '1,50,100',
+            pricing: '',
+            details: '',
         imageUrl: '',
       })
 
@@ -221,6 +246,9 @@ export default function AdminAddProductPage() {
 
       {/* Form Card */}
       <div className="bg-white rounded-lg shadow-lg p-8">
+        {/* Existing Products - allow deletion */}
+        <ExistingProducts />
+
         {submitMessage && (
           <div
             className={`mb-6 p-4 rounded-lg ${
@@ -245,7 +273,7 @@ export default function AdminAddProductPage() {
               name="title"
               value={formData.title}
               onChange={handleInputChange}
-              placeholder="e.g., Premium Latex Balloons"
+              placeholder="e.g., Premium Plain Latex Balloons"
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-900"
             />
@@ -334,6 +362,56 @@ export default function AdminAddProductPage() {
             />
           </div>
 
+          {/* Packs */}
+          <div>
+            <label htmlFor="packs" className="block text-sm font-semibold text-party-dark mb-2">
+              Packs (comma-separated)
+            </label>
+            <input
+              id="packs"
+              type="text"
+              name="packs"
+              value={formData.packs}
+              onChange={handleInputChange}
+              placeholder="e.g., 1,50,100"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-900"
+            />
+            <p className="text-sm text-gray-600 mt-2">Enter available pack sizes for this product.</p>
+          </div>
+
+          {/* Pricing JSON */}
+          <div>
+            <label htmlFor="pricing" className="block text-sm font-semibold text-party-dark mb-2">
+              Pricing (JSON)
+            </label>
+            <textarea
+              id="pricing"
+              name="pricing"
+              value={formData.pricing}
+              onChange={handleInputChange}
+              placeholder='e.g., {"5":{"1":5,"50":200,"100":350},"10":{"1":10,"50":900}}'
+              rows={5}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-900"
+            />
+            <p className="text-sm text-gray-600 mt-2">Optional. Specify pricing overrides per size and pack as JSON.</p>
+          </div>
+
+          {/* Details */}
+          <div>
+            <label htmlFor="details" className="block text-sm font-semibold text-party-dark mb-2">
+              Details (optional)
+            </label>
+            <textarea
+              id="details"
+              name="details"
+              value={formData.details}
+              onChange={handleInputChange}
+              placeholder="Additional product details"
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-900"
+            />
+          </div>
+
           {/* Image URL */}
           <div>
             <label htmlFor="imageUrl" className="block text-sm font-semibold text-party-dark mb-2">
@@ -373,6 +451,9 @@ export default function AdminAddProductPage() {
                   categories: '',
                   sizes: '',
                   colors: '',
+                  packs: '1,50,100',
+                  pricing: '',
+                  details: '',
                   imageUrl: '',
                 })
               }
@@ -402,6 +483,62 @@ export default function AdminAddProductPage() {
             saved to the database and visible on the storefront immediately.
           </p>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function ExistingProducts() {
+  const [products, setProducts] = React.useState<any[]>([]) 
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    let mounted = true
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products')
+        const data = await res.json()
+        if (mounted && data && data.data) setProducts(data.data)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    fetchProducts()
+    return () => { mounted = false }
+  }, [])
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete product? This action cannot be undone.')) return
+    try {
+      const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' })
+      const json = await res.json()
+      if (json.success) setProducts((p) => p.filter((x) => x.id !== id))
+    } catch (err) {
+      console.error(err)
+      alert('Failed to delete')
+    }
+  }
+
+  if (loading) return <p className="mb-4">Loading products...</p>
+
+  return (
+    <div className="mb-6">
+      <h2 className="text-lg font-semibold mb-3">Existing Products (Admin)</h2>
+      <div className="space-y-3">
+        {products.map((prod) => (
+          <div key={prod.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+            <div>
+              <div className="font-medium">{prod.title}</div>
+              <div className="text-sm text-gray-600">{prod.description}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={`/products/${prod.id}`} className="text-party-dark underline">View</a>
+              <button onClick={() => handleDelete(prod.id)} className="text-red-600 hover:underline">Delete</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )

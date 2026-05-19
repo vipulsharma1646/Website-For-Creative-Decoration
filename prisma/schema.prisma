@@ -19,6 +19,8 @@ model Product {
   categories  String   // JSON array stored as string
   sizes       String   // JSON array stored as string (e.g., ["5", "10"])
   colors      String   // JSON array stored as string (e.g., ["Red", "Blue", "Gold"])
+  details     String?  // optional product details / rich text
+  pricing     String?  // optional JSON string storing pricing overrides by size and pack
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

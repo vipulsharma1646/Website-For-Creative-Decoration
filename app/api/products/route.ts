@@ -30,6 +30,8 @@ export async function GET(request: NextRequest) {
           categories: JSON.parse(product.categories),
           sizes: JSON.parse(product.sizes),
           colors: JSON.parse(product.colors),
+          details: (product as any).details || null,
+          pricing: (product as any).pricing ? JSON.parse((product as any).pricing) : null,
         },
       })
     }
@@ -45,6 +47,8 @@ export async function GET(request: NextRequest) {
       categories: JSON.parse(product.categories),
       sizes: JSON.parse(product.sizes),
       colors: JSON.parse(product.colors),
+      details: (product as any).details || null,
+      pricing: (product as any).pricing ? JSON.parse((product as any).pricing) : null,
     }))
 
     return NextResponse.json({
@@ -107,17 +111,23 @@ export async function POST(request: NextRequest) {
         : JSON.stringify(body.colors)
 
     // Create product
-    const product = await prisma.product.create({
-      data: {
-        title: body.title,
-        description: body.description,
-        basePrice: parseFloat(body.basePrice),
-        imageUrl: body.imageUrl,
-        categories,
-        sizes,
-        colors,
-      },
-    })
+    const createData: any = {
+      title: body.title,
+      description: body.description,
+      basePrice: parseFloat(body.basePrice),
+      imageUrl: body.imageUrl,
+      categories,
+      sizes,
+      colors,
+      details: body.details || null,
+      pricing: body.pricing
+        ? typeof body.pricing === 'string'
+          ? body.pricing
+          : JSON.stringify(body.pricing)
+        : null,
+    }
+
+    const product = await prisma.product.create({ data: createData as any })
 
     return NextResponse.json(
       {
@@ -128,6 +138,8 @@ export async function POST(request: NextRequest) {
           categories: JSON.parse(product.categories),
           sizes: JSON.parse(product.sizes),
           colors: JSON.parse(product.colors),
+          details: (product as any).details || null,
+          pricing: (product as any).pricing ? JSON.parse((product as any).pricing) : null,
         },
       },
       { status: 201 }
@@ -139,6 +151,31 @@ export async function POST(request: NextRequest) {
       {
         error:
           'Failed to create product' +
+          (error instanceof Error ? ': ' + error.message : ''),
+      },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing product id' }, { status: 400 })
+    }
+
+    await prisma.product.delete({ where: { id } })
+
+    return NextResponse.json({ success: true, message: 'Product deleted' })
+  } catch (error) {
+    console.error('Product delete error:', error)
+    return NextResponse.json(
+      {
+        error:
+          'Failed to delete product' +
           (error instanceof Error ? ': ' + error.message : ''),
       },
       { status: 500 }
