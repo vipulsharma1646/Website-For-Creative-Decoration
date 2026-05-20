@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import CheckoutButton from '@/components/CheckoutButton'
 
 interface Product {
   id: string
@@ -291,17 +292,20 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              {/* Buy Now Button */}
-              <button
-                onClick={handleAddToCart}
-                className={`w-full py-4 rounded-lg font-bold text-lg transition-all duration-200 ${
-                  isAdded
-                    ? 'bg-green-700 text-white'
-                    : 'bg-green-900 text-[#ffe0bd] hover:bg-green-800 shadow-md hover:shadow-lg hover:-translate-y-0.5'
-                }`}
-              >
-                {isAdded ? '✓ Added to Cart' : 'Buy Now'}
-              </button>
+              {/* Buy Now Button - Razorpay Checkout */}
+              <CheckoutButton
+                amount={currentPrice * quantity}
+                productName={product.title}
+                productId={product.id}
+                onSuccess={(response) => {
+                  console.log('Payment successful:', response)
+                  alert(`Order placed successfully! Payment ID: ${response.razorpay_payment_id}`)
+                }}
+                onError={(error) => {
+                  console.error('Payment failed:', error)
+                }}
+                className="w-full py-4 rounded-lg font-bold text-lg bg-green-900 text-[#ffe0bd] hover:bg-green-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+              />
 
               <p className="text-center text-sm font-medium text-green-800">
                 Free shipping on orders above ₹500
