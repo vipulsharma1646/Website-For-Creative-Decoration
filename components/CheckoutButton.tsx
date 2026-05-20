@@ -81,7 +81,7 @@ export default function CheckoutButton({
       console.log('📥 Response status:', orderResponse.status)
 
       if (!orderResponse.ok) {
-        let errorData = {}
+        let errorData: any = {}
         try {
           errorData = await orderResponse.json()
         } catch (e) {
