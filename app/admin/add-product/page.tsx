@@ -27,7 +27,8 @@ export default function AdminAddProductPage() {
   const [submitMessage, setSubmitMessage] = useState('')
 
   // Simple password check - in production, use proper authentication
-  const ADMIN_PASSWORD = 'admin@2024'
+  // Use NEXT_PUBLIC_ADMIN_PASSWORD from environment for client-side check
+  const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? ''
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -216,12 +217,7 @@ export default function AdminAddProductPage() {
               </button>
             </form>
 
-            {/* Demo Note */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
-                <strong>Demo Password:</strong> admin@2024
-              </p>
-            </div>
+            {/* Demo Note removed - password must come from environment */}
           </div>
         </div>
       </div>

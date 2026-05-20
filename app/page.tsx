@@ -1,5 +1,7 @@
  'use client'
 
+export const dynamic = 'force-dynamic'
+
 import React, { useEffect, useState } from 'react'
 import ProductCard from '@/components/ProductCard'
 import WaveDivider from '@/components/WaveDivider'
