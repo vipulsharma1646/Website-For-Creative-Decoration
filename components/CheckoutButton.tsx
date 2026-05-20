@@ -2,6 +2,13 @@
 
 import React, { useState } from 'react'
 
+// Declare Razorpay on window for TypeScript
+declare global {
+  interface Window {
+    Razorpay: any
+  }
+}
+
 interface CheckoutButtonProps {
   amount: number
   productName?: string
@@ -117,7 +124,6 @@ export default function CheckoutButton({
         },
       }
 
-      // @ts-ignore - Razorpay is loaded dynamically
       const razorpayInstance = new window.Razorpay(options)
       razorpayInstance.open()
 
