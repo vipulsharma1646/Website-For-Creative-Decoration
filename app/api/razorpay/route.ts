@@ -1,37 +1,39 @@
 import Razorpay from 'razorpay'
 import { NextRequest, NextResponse } from 'next/server'
 
-// Verify credentials are loaded
-const KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
-const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET
+// Initialize Razorpay lazily when API is called (not at build time)
+function getRazorpayInstance() {
+  const KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+  const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET
 
-if (!KEY_ID || !KEY_SECRET) {
-  console.error('⚠️  Razorpay credentials missing! Check .env.local')
-  console.error('NEXT_PUBLIC_RAZORPAY_KEY_ID:', KEY_ID ? 'loaded' : 'missing')
-  console.error('RAZORPAY_KEY_SECRET:', KEY_SECRET ? 'loaded' : 'missing')
+  if (!KEY_ID || !KEY_SECRET) {
+    throw new Error(
+      'Razorpay credentials missing! Add NEXT_PUBLIC_RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to Vercel environment variables'
+    )
+  }
+
+  return new Razorpay({
+    key_id: KEY_ID,
+    key_secret: KEY_SECRET,
+  })
 }
-
-const razorpay = new Razorpay({
-  key_id: KEY_ID || '',
-  key_secret: KEY_SECRET || '',
-})
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🔵 [Razorpay API] Request received')
     
-    // Check if credentials are set
-    if (!KEY_ID || !KEY_SECRET) {
-      console.error('🔴 [Razorpay API] Missing credentials:', { 
-        hasKeyId: !!KEY_ID, 
-        hasKeySecret: !!KEY_SECRET 
-      })
+    // Initialize Razorpay when needed
+    let razorpay
+    try {
+      razorpay = getRazorpayInstance()
+    } catch (err) {
+      console.error('🔴 [Razorpay API]', err instanceof Error ? err.message : err)
       return NextResponse.json(
         { 
-          error: 'Razorpay credentials not configured',
-          details: 'Missing NEXT_PUBLIC_RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET in environment'
+          error: 'Razorpay not configured',
+          details: 'Add NEXT_PUBLIC_RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to Vercel environment'
         },
-        { status: 400 }
+        { status: 500 }
       )
     }
 
